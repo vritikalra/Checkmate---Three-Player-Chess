@@ -1,0 +1,74 @@
+plugins {
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+group 'jchess'
+version '0.0.1'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+application.mainClassName = 'jchess.gui.application.JChessApp'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.jdesktop:appframework:1.0.3'
+    implementation 'org.jdesktop:swing-worker:1.1'
+
+    testImplementation 'net.jodah:concurrentunit:0.4.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.5.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.2'
+}
+
+run.systemProperty 'java.util.logging.config.file', 'build/resources/main/logging.properties'
+
+test {
+    useJUnitPlatform()
+    systemProperty 'java.util.logging.config.file', 'build/resources/test/logging.properties'
+}
+
+// create executable jar file on every build
+shadowJar {
+    destinationDirectory = file('build')
+    archiveBaseName = 'checkmate'
+    archiveClassifier = ''
+}
+
+// create javadoc on every build
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compileClasspath
+}
+
+task zippedJavadoc(type: Zip) {
+    dependsOn javadoc
+    description "Zip archive of the project's aggregate JavaDoc"
+    group "documentation"
+
+    destinationDir buildDir
+    version project.version
+    classifier "javadocs"
+
+    from "build/docs/javadoc"
+    into "build/docs"
+}
+
+
+// show complete list of warnings on compilation
+allprojects {
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+        }
+    }
+}
+
+// special treatment of jdesktop resource files
+sourceSets.main.resources.exclude "jdesktop-resources"
+task copyJDesktopResources(type: Copy) {
+    from "src/main/resources/jdesktop-resources"
+    into "build/classes/java/main/jchess/gui/application/resources"
+}
+classes.dependsOn copyJDesktopResources
