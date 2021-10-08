@@ -1,1 +1,1 @@
-# Checkmate---Three-Player-Chess
+# Checkmate-Three Player Chess
